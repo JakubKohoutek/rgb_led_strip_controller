@@ -17,6 +17,7 @@ bool lastStable = HIGH;
 bool lastReading = HIGH;
 bool pressArmed = true;
 
+float smoothedPotValue = 0;
 int previousPotValue = 0;
 
 void setup() {
@@ -67,7 +68,9 @@ void loop() {
     mode = (mode + 1) % numModes;
   }
 
-  int potValue = analogRead(potPin);
+  int rawPot = analogRead(potPin);
+  smoothedPotValue += 0.05 * (rawPot - smoothedPotValue);
+  int potValue = (int)smoothedPotValue;
   if (abs(previousPotValue - potValue) > 4) {
     Serial.println(potValue);
     previousPotValue = potValue;
