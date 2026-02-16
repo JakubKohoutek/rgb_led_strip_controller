@@ -20,6 +20,9 @@ bool pressArmed = true;
 float smoothedPotValue = 0;
 int previousPotValue = 0;
 
+unsigned long lastActivityMs = 0;
+const unsigned long inactivityTimeoutMs = 36000000UL; // 10 hours
+
 void setup() {
   Serial.begin(9600);
   pinMode(redPin, OUTPUT);
@@ -66,6 +69,7 @@ void loop() {
   if (buttonPressed()) {
     Serial.println("Button pressed");
     mode = (mode + 1) % numModes;
+    lastActivityMs = millis();
   }
 
   int rawPot = analogRead(potPin);
@@ -74,6 +78,13 @@ void loop() {
   if (abs(previousPotValue - potValue) > 4) {
     Serial.println(potValue);
     previousPotValue = potValue;
+    lastActivityMs = millis();
+  }
+
+  // Turn off after 10 hours of inactivity
+  if (mode != 0 && (millis() - lastActivityMs) >= inactivityTimeoutMs) {
+    mode = 0;
+    Serial.println("Inactivity timeout – turning off");
   }
 
   // Determine color combination
